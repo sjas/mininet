@@ -13,16 +13,17 @@ set -o nounset
 KERNEL_LOC=http://www.openflow.org/downloads/mininet
 
 # Attempt to identify Linux release
-
 DIST=Unknown
 RELEASE=Unknown
 CODENAME=Unknown
 ARCH=`uname -m`
+
 if [ "$ARCH" = "x86_64" ]; then ARCH="amd64"; fi
 if [ "$ARCH" = "i686" ]; then ARCH="i386"; fi
 
 test -e /etc/debian_version && DIST="Debian"
 grep Ubuntu /etc/lsb-release &> /dev/null && DIST="Ubuntu"
+grep CentOS /etc/redhat-release &> /dev/null && DIST2="CentOS"
 if [ "$DIST" = "Ubuntu" ] || [ "$DIST" = "Debian" ]; then
     install='sudo apt-get -y install'
     remove='sudo apt-get -y remove'
@@ -33,6 +34,18 @@ if [ "$DIST" = "Ubuntu" ] || [ "$DIST" = "Debian" ]; then
     fi
     if ! which bc &> /dev/null; then
         $install bc
+    fi
+fi
+if [ "$DIST" = "CentOS" ]; then
+    install='sudo yum -y install'
+    remove='sudo yum -y remove'
+    pkginst='sudo rpm -q'
+    ## Prereqs for this script
+    if ! which lsb_release &> /dev/null; then
+	$install redhat-lsb
+    fi
+    if ! which bc &> /dev/null; then
+	$install bc
     fi
 fi
 if which lsb_release &> /dev/null; then
@@ -55,8 +68,12 @@ elif [ "$DIST" = "Debian" ] && [ "$ARCH" = "i386" ] && [ "$CODENAME" = "lenny" ]
     KERNEL_NAME=2.6.33.1-mininet
     KERNEL_HEADERS=linux-headers-${KERNEL_NAME}_${KERNEL_NAME}-10.00.Custom_i386.deb
     KERNEL_IMAGE=linux-image-${KERNEL_NAME}_${KERNEL_NAME}-10.00.Custom_i386.deb
+elif [ "$DIST" = "CentOS" ] && [ "$ARCH" = "i386" ]; then
+    KERNEL_NAME=`uname -r`
+    KERNEL_HEADERS=linux-headers-${KERNEL_NAME}
 else
     echo "Install.sh currently only supports Ubuntu and Debian Lenny i386."
+    echo "And CentOS. :)"
     exit 1
 fi
 
@@ -79,10 +96,11 @@ OVS_KMODS=($OVS_BUILD/datapath/linux/{openvswitch_mod.ko,brcompat_mod.ko})
 
 function kernel {
     echo "Install Mininet-compatible kernel if necessary"
-    sudo apt-get update
     if [ "$DIST" = "Ubuntu" ] &&  [ "$RELEASE" = "10.04" ]; then
+        sudo apt-get update
         $install linux-image-$KERNEL_NAME
     elif [ "$DIST" = "Debian" ]; then
+        sudo apt-get update
         # The easy approach: download pre-built linux-image and linux-headers packages:
         wget -c $KERNEL_LOC/$KERNEL_HEADERS
         wget -c $KERNEL_LOC/$KERNEL_IMAGE
@@ -104,6 +122,10 @@ function kernel {
         # The default should be the new kernel. Otherwise, you may need to modify
         # /boot/grub/menu.lst to set the default to the entry corresponding to the
         # kernel you just installed.
+    elif [ "$DIST" = "CentOS" ]; then
+        sudo yum check-update
+        $install linux-image-$KERNEL_NAME
+	echo "updating kernel"
     fi
 }
 
@@ -126,10 +148,11 @@ function mn_deps {
         python-setuptools python-networkx cgroup-bin ethtool help2man \
         pyflakes pylint pep8
 
-    if [ "$DIST" = "Ubuntu" ] && [ "$RELEASE" = "10.04" ]; then
+    ### this should work with all types of distrubutions?
+    #if [ "$DIST" = "Ubuntu" ] && [ "$RELEASE" = "10.04" ]; then
         echo "Upgrading networkx to avoid deprecation warning"
         sudo easy_install --upgrade networkx
-    fi
+    #fi
 
     # Add sysctl parameters as noted in the INSTALL file to increase kernel
     # limits to support larger setups:
@@ -171,7 +194,7 @@ function of {
     $remove avahi-daemon
 
     # Disable IPv6.  Add to /etc/modprobe.d/blacklist:
-    if [ "$DIST" = "Ubuntu" ]; then
+    if [ "$DIST" = "Ubuntu" ] || [ "$DIST" = "CentOS" ]; then
         BLACKLIST=/etc/modprobe.d/blacklist.conf
     else
         BLACKLIST=/etc/modprobe.d/blacklist
@@ -183,7 +206,11 @@ function of {
 function wireshark {
     echo "Installing Wireshark dissector..."
 
-    sudo apt-get install -y wireshark libgtk2.0-dev
+    if [ "$DIST" = "Ubuntu" ] || [ "$DIST" = "Debian" ]; then
+        sudo apt-get install -y wireshark libgtk2.0-dev
+    elif [ "$DIST" = "CentOS" ]; then
+        yum install -y wireshark
+    fi
 
     if [ "$DIST" = "Ubuntu" ] && [ "$RELEASE" != "10.04" ]; then
         # Install newer version
