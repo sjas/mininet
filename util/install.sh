@@ -2,6 +2,8 @@
 
 # Mininet install script for Ubuntu (and Debian Lenny)
 # Brandon Heller (brandonh@stanford.edu)
+# CentOS additions made by:
+# Stephan 'sjas' Schuberth (stephan_schuberth@web.de)
 
 # Fail on error
 set -e
@@ -148,7 +150,7 @@ function mn_deps {
         python-setuptools python-networkx cgroup-bin ethtool help2man \
         pyflakes pylint pep8
 
-    ### this should work with all types of distrubutions?
+    # sjas: this should work with all types of distrubutions?
     #if [ "$DIST" = "Ubuntu" ] && [ "$RELEASE" = "10.04" ]; then
         echo "Upgrading networkx to avoid deprecation warning"
         sudo easy_install --upgrade networkx
@@ -209,7 +211,7 @@ function wireshark {
     if [ "$DIST" = "Ubuntu" ] || [ "$DIST" = "Debian" ]; then
         sudo apt-get install -y wireshark libgtk2.0-dev
     elif [ "$DIST" = "CentOS" ]; then
-	### dont know if this is enough?
+	# sjas: dont know if the sole wireshark package is enough
         yum install -y wireshark
     fi
 
@@ -228,6 +230,7 @@ function wireshark {
         sudo cp openflow.so $WSPLUGDIR
         echo "Copied openflow plugin to $WSPLUGDIR"
     else
+        # sjas: check if this is fine on CentOS
         # Install older version from reference source
         cd ~/openflow/utilities/wireshark_dissectors/openflow
         make
@@ -246,10 +249,10 @@ function wireshark {
 function ovs {
     echo "Installing Open vSwitch..."
 
-    ### MARKER START
-    ### somewhere between marker has the openvswitch installation for centos to be fitted in
-    ### centos equivalent of 'dpkg --get-selections':
-    ### rpm -qa --qf '%{NAME}\n' | grep <<find term to grep>>; then
+    # sjas: MARKER START
+    # sjas: somewhere between marker has the openvswitch installation for centos to be fitted in
+    # sjas: centos equivalent of 'dpkg --get-selections':
+    # sjas: rpm -qa --qf '%{NAME}\n' | grep <<find term to grep>>; then
 
     # Required for module build/dkms install
     $install $KERNEL_HEADERS
@@ -268,7 +271,7 @@ function ovs {
         pkgs=""
         for p in $order; do
             pkg=`echo "$orig" | grep $p`
-        ### TODO this here has to be checked for centos, too
+        # sjas: TODO this here has to be checked for centos, too
         # Annoyingly, things seem to be missing without this flag
             $pkginst --force-confmiss $pkg
         done
@@ -343,7 +346,7 @@ function ovs {
 
     modprobe
 
-    ### MARKER END
+    # sjas: MARKER END
 }
 
 function remove_ovs {
@@ -407,7 +410,7 @@ function nox {
     make -j3
     #make check
 
-    ### on ubuntu this was broken when running things through sudo IIRC
+    # sjas: on ubuntu this was broken when running things through sudo IIRC
     # Add NOX_CORE_DIR env var:
     sed -i -e 's|# for examples$|&\nexport NOX_CORE_DIR=~/noxcore/build/src|' ~/.bashrc
 
@@ -450,7 +453,7 @@ function cbench {
     sh boot.sh
     ./configure --with-openflow-src-dir=$HOME/openflow
     make
-    ### the next line made me laugh, hard :D
+    # sjas: the next line made me laugh, hard :D
     sudo make install || true # make install fails; force past this
 }
 
@@ -506,7 +509,7 @@ function all {
     of
     wireshark
     ovs
-    ### TODO check nox 
+    # sjas: TODO check nox 
     # NOX-classic is deprecated, but you can install it manually if desired.
     # nox
     pox
@@ -522,9 +525,9 @@ function vm_clean {
 
     echo "Cleaning VM..."
     if [ "$DIST" = "CentOS" ]; then
-    sudo yum clean
+        sudo yum clean
     else
-    sudo apt-get clean
+        sudo apt-get clean
     fi
     sudo rm -rf /tmp/*
     sudo rm -rf openvswitch*.tar.gz
@@ -535,7 +538,7 @@ function vm_clean {
     rm -f ~/.ssh/id_rsa* ~/.ssh/known_hosts
     sudo rm -f ~/.ssh/authorized_keys*
 
-    ### TODO is this still needed?
+    # sjas: TODO is this still needed?
     # Remove Mininet files
     #sudo rm -f /lib/modules/python2.5/site-packages/mininet*
     #sudo rm -f /usr/bin/mnexec
