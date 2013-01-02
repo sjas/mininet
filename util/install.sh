@@ -23,7 +23,7 @@ if [ "$ARCH" = "i686" ]; then ARCH="i386"; fi
 
 test -e /etc/debian_version && DIST="Debian"
 grep Ubuntu /etc/lsb-release &> /dev/null && DIST="Ubuntu"
-grep CentOS /etc/redhat-release &> /dev/null && DIST2="CentOS"
+grep CentOS /etc/redhat-release &> /dev/null && DIST="CentOS"
 if [ "$DIST" = "Ubuntu" ] || [ "$DIST" = "Debian" ]; then
     install='sudo apt-get -y install'
     remove='sudo apt-get -y remove'
