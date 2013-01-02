@@ -42,10 +42,10 @@ if [ "$DIST" = "CentOS" ]; then
     pkginst='sudo rpm -q'
     ## Prereqs for this script
     if ! which lsb_release &> /dev/null; then
-	$install redhat-lsb
+    $install redhat-lsb
     fi
     if ! which bc &> /dev/null; then
-	$install bc
+    install bc
     fi
 fi
 if which lsb_release &> /dev/null; then
@@ -125,7 +125,7 @@ function kernel {
     elif [ "$DIST" = "CentOS" ]; then
         sudo yum check-update
         $install linux-image-$KERNEL_NAME
-	echo "updating kernel"
+    echo "updating kernel"
     fi
 }
 
@@ -176,7 +176,7 @@ function of {
     echo "Installing OpenFlow reference implementation..."
     cd ~/
     $install git-core autoconf automake autotools-dev pkg-config \
-		make gcc libtool libc6-dev
+        make gcc libtool libc6-dev
     git clone git://openflowswitch.org/openflow.git
     cd ~/openflow
 
@@ -209,6 +209,7 @@ function wireshark {
     if [ "$DIST" = "Ubuntu" ] || [ "$DIST" = "Debian" ]; then
         sudo apt-get install -y wireshark libgtk2.0-dev
     elif [ "$DIST" = "CentOS" ]; then
+	### dont know if this is enough?
         yum install -y wireshark
     fi
 
@@ -245,6 +246,11 @@ function wireshark {
 function ovs {
     echo "Installing Open vSwitch..."
 
+    ### MARKER START
+    ### somewhere between marker has the openvswitch installation for centos to be fitted in
+    ### centos equivalent of 'dpkg --get-selections':
+    ### rpm -qa --qf '%{NAME}\n' | grep <<find term to grep>>; then
+
     # Required for module build/dkms install
     $install $KERNEL_HEADERS
 
@@ -254,7 +260,7 @@ function ovs {
     # XXX wget -c seems to fail from github/amazon s3
     cd /tmp
     if wget $OVS_PACKAGE_LOC/$OVS_PACKAGE_NAME 2> /dev/null; then
-	$install patch dkms fakeroot python-argparse
+    $install patch dkms fakeroot python-argparse
         tar xf $OVS_PACKAGE_NAME
         orig=`tar tf $OVS_PACKAGE_NAME`
         # Now install packages in reasonable dependency order
@@ -262,7 +268,8 @@ function ovs {
         pkgs=""
         for p in $order; do
             pkg=`echo "$orig" | grep $p`
-	    # Annoyingly, things seem to be missing without this flag
+        ### TODO this here has to be checked for centos, too
+        # Annoyingly, things seem to be missing without this flag
             $pkginst --force-confmiss $pkg
         done
         ovspresent=1
@@ -276,11 +283,12 @@ function ovs {
             # Otherwise, install it.
             $install openvswitch-datapath-dkms
         fi
-	if $install openvswitch-switch openvswitch-controller; then
+    if $install openvswitch-switch openvswitch-controller; then
             echo "Ignoring error installing openvswitch-controller"
         fi
         ovspresent=1
     fi
+
 
     # Switch can run on its own, but
     # Mininet should control the controller
@@ -334,6 +342,8 @@ function ovs {
     sudo make install
 
     modprobe
+
+    ### MARKER END
 }
 
 function remove_ovs {
@@ -397,6 +407,7 @@ function nox {
     make -j3
     #make check
 
+    ### on ubuntu this was broken when running things through sudo IIRC
     # Add NOX_CORE_DIR env var:
     sed -i -e 's|# for examples$|&\nexport NOX_CORE_DIR=~/noxcore/build/src|' ~/.bashrc
 
@@ -439,6 +450,7 @@ function cbench {
     sh boot.sh
     ./configure --with-openflow-src-dir=$HOME/openflow
     make
+    ### the next line made me laugh, hard :D
     sudo make install || true # make install fails; force past this
 }
 
@@ -454,6 +466,7 @@ function other {
 
     # Install common text editors
     $install vim nano emacs
+    $install vim-enhanced
 
     # Install NTP
     $install ntp
@@ -493,6 +506,7 @@ function all {
     of
     wireshark
     ovs
+    ### TODO check nox 
     # NOX-classic is deprecated, but you can install it manually if desired.
     # nox
     pox
@@ -505,17 +519,23 @@ function all {
 
 # Restore disk space and remove sensitive files before shipping a VM.
 function vm_clean {
+
     echo "Cleaning VM..."
+    if [ "$DIST" = "CentOS" ]; then
+    sudo yum clean
+    else
     sudo apt-get clean
+    fi
     sudo rm -rf /tmp/*
     sudo rm -rf openvswitch*.tar.gz
 
-    # Remove sensistive files
+    # Remove sensitive files
     history -c  # note this won't work if you have multiple bash sessions
     rm -f ~/.bash_history  # need to clear in memory and remove on disk
     rm -f ~/.ssh/id_rsa* ~/.ssh/known_hosts
     sudo rm -f ~/.ssh/authorized_keys*
 
+    ### TODO is this still needed?
     # Remove Mininet files
     #sudo rm -f /lib/modules/python2.5/site-packages/mininet*
     #sudo rm -f /usr/bin/mnexec
@@ -536,7 +556,8 @@ function usage {
 
     printf 'This install script attempts to install useful packages\n' >&2
     printf 'for Mininet. It should (hopefully) work on Ubuntu 10.04, 11.10\n' >&2
-    printf 'and Debian 5.0 (Lenny). If you run into trouble, try\n' >&2
+    printf 'and Debian 5.0 (Lenny), and CentOS 6.x as well!'
+    printf 'If you run into trouble, try\n' >&2
     printf 'installing one thing at a time, and looking at the \n' >&2
     printf 'specific installation function in this script.\n\n' >&2
 
@@ -587,3 +608,5 @@ else
     done
     shift $(($OPTIND - 1))
 fi
+
+# vim: expandtab:ai:ts=4:sw=4:softtabstop=4
