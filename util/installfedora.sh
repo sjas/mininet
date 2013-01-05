@@ -194,7 +194,7 @@ function wireshark {
         sudo apt-get install -y wireshark libgtk2.0-dev
     elif [ "$DIST" = "Fedora" ]; then
     # sjas: dont know if the sole wireshark package is enough
-        yum install -y wireshark
+        sudo yum install -y wireshark
     fi
 
     if [ "$DIST" = "Ubuntu" ] && [ "$RELEASE" != "10.04" ]; then
