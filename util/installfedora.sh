@@ -232,7 +232,7 @@ function ovs {
     #make
     #sudo make install
 
-    modprobe
+    #modprobe
 
 }
 
