@@ -129,8 +129,8 @@ function kernel_clean {
 function mn_deps {
     echo "Installing Mininet dependencies"
     $install gcc make screen psmisc xterm openssh iperf iproute telnet \
-        python-setuptools python-networkx cgroup-bin ethtool help2man \
-        pyflakes pylint pep8
+        python-setuptools python-networkx libcgroup ethtool help2man \
+        pyflakes pylint python-pep8
 
     # sjas: this should work with all types of distrubutions?
     # sjas: removed it because things hung here
