@@ -208,104 +208,32 @@ function wireshark {
 function ovs {
     echo "Installing Open vSwitch..."
 
-    # sjas: MARKER START
-    # sjas: somewhere between marker has the openvswitch installation for centos to be fitted in
-    # sjas: centos equivalent of 'dpkg --get-selections':
+    # sjas: fedora equivalent of 'dpkg --get-selections':
     # sjas: rpm -qa --qf '%{NAME}\n' | grep <<find term to grep>>; then
 
-    # Required for module build/dkms install
-    #$install $KERNEL_HEADERS
-
-    ovspresent=0
-
-    # First see if we have packages
-    # XXX wget -c seems to fail from github/amazon s3
-    cd /tmp
-    if wget $OVS_PACKAGE_LOC/$OVS_PACKAGE_NAME 2> /dev/null; then
-    $install patch dkms fakeroot python-argparse
-        tar xf $OVS_PACKAGE_NAME
-        orig=`tar tf $OVS_PACKAGE_NAME`
-        # Now install packages in reasonable dependency order
-        order='dkms common pki openvswitch-switch brcompat controller'
-        pkgs=""
-        for p in $order; do
-            pkg=`echo "$orig" | grep $p`
-        # sjas: TODO this here has to be checked for centos, too
-        # Annoyingly, things seem to be missing without this flag
-            $pkginst --force-confmiss $pkg
-        done
-        ovspresent=1
-    fi
-
-    # Otherwise try distribution's OVS packages
-    if [ "$DIST" = "Ubuntu" ] && [ `expr $RELEASE '>=' 11.10` = 1 ]; then
-        if ! dpkg --get-selections | grep openvswitch-datapath; then
-            # If you've already installed a datapath, assume you
-            # know what you're doing and don't need dkms datapath.
-            # Otherwise, install it.
-            $install openvswitch-datapath-dkms
-        fi
-    if $install openvswitch-switch openvswitch-controller; then
-            echo "Ignoring error installing openvswitch-controller"
-        fi
-        ovspresent=1
-    fi
-
-
-    # Switch can run on its own, but
-    # Mininet should control the controller
-    if [ -e /etc/init.d/openvswitch-controller ]; then
-        if sudo service openvswitch-controller stop; then
-            echo "Stopped running controller"
-        fi
-        sudo update-rc.d openvswitch-controller disable
-    fi
-
-    if [ $ovspresent = 1 ]; then
-        echo "Done (hopefully) installing packages"
-        cd ~
-        return
-    fi
-
-    # Otherwise attempt to install from source
-
-    $install pkg-config gcc make python-dev libssl-dev libtool
-
-    #if [ "$DIST" = "Debian" ]; then
-        #if [ "$CODENAME" = "lenny" ]; then
-            #$install git
-            ## Install Autoconf 2.63+ backport from Debian Backports repo:
-            ## Instructions from http://backports.org/dokuwiki/doku.php?id=instructions
-            #sudo su -c "echo 'deb http://www.backports.org/debian lenny-backports main contrib non-free' >> /etc/apt/sources.list"
-            #sudo apt-get update
-            #sudo apt-get -y --force-yes install debian-backports-keyring
-            #sudo apt-get -y --force-yes -t lenny-backports install autoconf
-        #fi
-    #else
-        $install git
+    $install openvswitch openvswitch-controller python-openvswitch
+    ## Otherwise attempt to install from source
+    #$install git pkgconfig gcc make python-devel openssl-devel libtool
+    ## Install OVS from release
+    #cd ~/
+    #git clone git://openvswitch.org/openvswitch $OVS_SRC
+    #cd $OVS_SRC
+    #git checkout $OVS_TAG
+    #./boot.sh
+    #BUILDDIR=/lib/modules/${KERNEL_NAME}/build
+    #if [ ! -e $BUILDDIR ]; then
+        #echo "Creating build sdirectory $BUILDDIR"
+        #sudo mkdir -p $BUILDDIR
     #fi
-
-    # Install OVS from release
-    cd ~/
-    git clone git://openvswitch.org/openvswitch $OVS_SRC
-    cd $OVS_SRC
-    git checkout $OVS_TAG
-    ./boot.sh
-    BUILDDIR=/lib/modules/${KERNEL_NAME}/build
-    if [ ! -e $BUILDDIR ]; then
-        echo "Creating build sdirectory $BUILDDIR"
-        sudo mkdir -p $BUILDDIR
-    fi
-    opts="--with-linux=$BUILDDIR"
-    mkdir -p $OVS_BUILD
-    cd $OVS_BUILD
-    ../configure $opts
-    make
-    sudo make install
+    #opts="--with-linux=$BUILDDIR"
+    #mkdir -p $OVS_BUILD
+    #cd $OVS_BUILD
+    #../configure $opts
+    #make
+    #sudo make install
 
     modprobe
 
-    # sjas: MARKER END
 }
 
 function remove_ovs {
