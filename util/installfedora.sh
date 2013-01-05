@@ -332,8 +332,8 @@ function oftest {
 function cbench {
     echo "Installing cbench..."
 
-    $install net-snmp net-snmp-devel net-snmp-libs libconfig libconfig-devel
-    #libpcap-dev libconfig-dev
+    $install net-snmp net-snmp-devel net-snmp-libs libconfig libconfig-devel libpcap-devel
+
     cd ~/
     git clone git://openflow.org/oflops.git
     cd oflops
