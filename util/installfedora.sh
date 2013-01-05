@@ -318,7 +318,7 @@ function oftest {
     echo "Installing oftest..."
 
     # Install deps:
-    $install tcpdump python-scapy
+    $install tcpdump scapy
 
     # Install oftest:
     cd ~/
@@ -332,7 +332,7 @@ function oftest {
 function cbench {
     echo "Installing cbench..."
 
-    $install libsnmp-dev libpcap-dev libconfig-dev
+    #$install libsnmp-dev libpcap-dev libconfig-dev
     cd ~/
     git clone git://openflow.org/oflops.git
     cd oflops
