@@ -214,7 +214,7 @@ function ovs {
     # sjas: rpm -qa --qf '%{NAME}\n' | grep <<find term to grep>>; then
 
     # Required for module build/dkms install
-    $install $KERNEL_HEADERS
+    #$install $KERNEL_HEADERS
 
     ovspresent=0
 
