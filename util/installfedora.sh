@@ -160,8 +160,8 @@ function mn_deps {
 function of {
     echo "Installing OpenFlow reference implementation..."
     cd ~/
-    $install git autoconf automake autotools-dev pkg-config \
-        make gcc libtool libc6-dev
+    $install git autoconf automake pkgconfig \
+        make gcc libtool
     git clone git://openflowswitch.org/openflow.git
     cd ~/openflow
 
@@ -172,7 +172,7 @@ function of {
     ./boot.sh
     ./configure
     # sjas: added sudo here
-    sudo make
+    make
     sudo make install
 
     # Remove avahi-daemon, which may cause unwanted discovery packets to be
@@ -487,24 +487,16 @@ function modprobe {
 function all {
     echo "Running all commands..."
     #kernel
-    echo "Running all commands..."
     mn_deps
-    echo "Running all commands..."
     of
-    echo "Running all commands..."
     wireshark
-    echo "Running all commands..."
     ovs
-    echo "Running all commands..."
     # sjas: TODO check nox 
     # NOX-classic is deprecated, but you can install it manually if desired.
     # nox
     pox
-    echo "Running all commands..."
     oftest
-    echo "Running all commands..."
     cbench
-    echo "Running all commands..."
     other
     echo "Please reboot, then run ./mininet/util/install.sh -c to remove unneeded packages."
     echo "Enjoy Mininet!"
