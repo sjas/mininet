@@ -190,7 +190,7 @@ function wireshark {
     echo "Installing Wireshark dissector..."
 
     # sjas: check wireshark package stuff
-    yum groupinstall "X Window System"
+    sudo yum groupinstall "X Window System"
     sudo yum install -y wireshark wireshark-gnome glib2-devel
     cd ~/openflow/utilities/wireshark_dissectors/openflow
     make
