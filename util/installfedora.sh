@@ -133,9 +133,10 @@ function mn_deps {
         pyflakes pylint pep8
 
     # sjas: this should work with all types of distrubutions?
+    # sjas: removed it because things hung here
     #if [ "$DIST" = "Ubuntu" ] && [ "$RELEASE" = "10.04" ]; then
-        echo "Upgrading networkx to avoid deprecation warning"
-        sudo easy_install --upgrade networkx
+        #echo "Upgrading networkx to avoid deprecation warning"
+        #sudo easy_install --upgrade networkx
     #fi
 
     # Add sysctl parameters as noted in the INSTALL file to increase kernel
