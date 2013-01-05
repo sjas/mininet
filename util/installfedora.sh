@@ -144,8 +144,8 @@ function mn_deps {
     sudo su -c "cat $HOME/mininet/util/sysctl_addon >> /etc/sysctl.conf"
 
     # Load new sysctl settings:
-    sudo sysctl -p
-
+    sudo sysctl -p \
+        && \
     echo "Installing Mininet core"
     pushd ~/mininet
     sudo make install
