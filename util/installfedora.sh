@@ -332,7 +332,8 @@ function oftest {
 function cbench {
     echo "Installing cbench..."
 
-    #$install libsnmp-dev libpcap-dev libconfig-dev
+    $install net-snmp net-snmp-devel net-snmp-libs
+    #libpcap-dev libconfig-dev
     cd ~/
     git clone git://openflow.org/oflops.git
     cd oflops
@@ -341,7 +342,7 @@ function cbench {
     ./configure --with-openflow-src-dir=$HOME/openflow
     make
     # sjas: the next line made me laugh, hard :D
-    sudo make install || true # make install fails; force past this
+    #sudo make install || true # make install fails; force past this
 }
 
 function other {
@@ -371,8 +372,9 @@ function other {
         sudo sed -i -e 's/^timeout.*$/timeout         1/' /boot/grub/menu.lst
     fi
 
+    # sjas: centos has good kernel
     # Clean unneeded debs:
-    rm -f ~/linux-headers-* ~/linux-image-*
+    #rm -f ~/linux-headers-* ~/linux-image-*
 }
 
 # Script to copy built OVS kernel module to where modprobe will
@@ -443,8 +445,7 @@ function usage {
     printf 'Usage: %s [-acdfhkmntvxy]\n\n' $(basename $0) >&2
 
     printf 'This install script attempts to install useful packages\n' >&2
-    printf 'for Mininet. It should (hopefully) work on Ubuntu 10.04, 11.10\n' >&2
-    printf 'and Debian 5.0 (Lenny), and Fedora 6.x as well!'
+    printf 'for Mininet. It should (hopefully) work on Fedora 17! :D\n' >&2
     printf 'If you run into trouble, try\n' >&2
     printf 'installing one thing at a time, and looking at the \n' >&2
     printf 'specific installation function in this script.\n\n' >&2
