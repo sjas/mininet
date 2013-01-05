@@ -190,34 +190,11 @@ function wireshark {
     echo "Installing Wireshark dissector..."
 
     # sjas: check wireshark package stuff
-    if [ "$DIST" = "Ubuntu" ] || [ "$DIST" = "Debian" ]; then
-        sudo apt-get install -y wireshark libgtk2.0-dev
-    elif [ "$DIST" = "Fedora" ]; then
-    # sjas: dont know if the sole wireshark package is enough
-        sudo yum install -y wireshark
-    fi
-
-    if [ "$DIST" = "Ubuntu" ] && [ "$RELEASE" != "10.04" ]; then
-        # Install newer version
-        sudo apt-get install -y scons mercurial libglib2.0-dev
-        sudo apt-get install -y libwiretap-dev libwireshark-dev
-        cd ~
-        hg clone https://bitbucket.org/barnstorm/of-dissector
-        cd of-dissector/src
-        export WIRESHARK=/usr/include/wireshark
-        scons
-        # libwireshark0/ on 11.04; libwireshark1/ on later
-        WSDIR=`ls -d /usr/lib/wireshark/libwireshark* | head -1`
-        WSPLUGDIR=$WSDIR/plugins/
-        sudo cp openflow.so $WSPLUGDIR
-        echo "Copied openflow plugin to $WSPLUGDIR"
-    else
-        # sjas: check if this is fine on Fedora
-        # Install older version from reference source
-        cd ~/openflow/utilities/wireshark_dissectors/openflow
-        make
-        sudo make install
-    fi
+    yum groupinstall "X Window System"
+    sudo yum install -y wireshark wireshark-gnome glib2-devel
+    cd ~/openflow/utilities/wireshark_dissectors/openflow
+    make
+    sudo make install
 
     # Copy coloring rules: OF is white-on-blue:
     mkdir -p ~/.wireshark
